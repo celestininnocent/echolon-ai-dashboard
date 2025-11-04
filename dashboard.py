@@ -200,29 +200,32 @@ with st.expander("💬 Collaboration", expanded=True):
     st.info("🗒️ Q4 budget allocation meeting scheduled for next week")
     st.info("🗒️ New product launch expected to boost retention by 5%")
 
-# Additional visualization section
+# Additional visualization section - SIMPLIFIED VERSION
 with st.expander("📊 Additional Analytics", expanded=False):
-    st.subheader("Revenue & Customer Trends")
-    
-    fig_trends = go.Figure()
-    fig_trends.add_trace(go.Scatter(x=df['Date'], y=df['Revenue'], mode='lines', name='Daily Revenue', 
-                                   line=dict(color='#00D9FF', width=2), yaxis='y'))
-    fig_trends.add_trace(go.Scatter(x=df['Date'], y=df['Customers'], mode='lines', name='Daily Customers',
-                                   line=dict(color='#FFB700', width=2), yaxis='y2'))
-    fig_trends.update_layout(
-        title='Revenue vs Customer Growth Over Time',
-        xaxis_title='Date',
-        yaxis=dict(title='Revenue ($)', titlefont=dict(color='#00D9FF'), tickfont=dict(color='#00D9FF')),
-        yaxis2=dict(title='Customers', titlefont=dict(color='#FFB700'), tickfont=dict(color='#FFB700'), overlaying='y', side='right'),
+    st.subheader("Revenue Trends")
+    fig_revenue = px.line(df, x='Date', y='Revenue', title='Daily Revenue Over Time',
+                         labels={'Revenue': 'Revenue ($)', 'Date': 'Date'})
+    fig_revenue.update_layout(
         plot_bgcolor='#1E1E1E',
         paper_bgcolor='#22252A',
         font=dict(color='#EEE'),
-        height=400,
-        hovermode='x'
+        height=350
     )
-    st.plotly_chart(fig_trends, use_container_width=True)
+    fig_revenue.update_traces(line_color='#00D9FF', line_width=2)
+    st.plotly_chart(fig_revenue, use_container_width=True)
     
-    # Churn analysis
+    st.subheader("Customer Growth")
+    fig_customers = px.line(df, x='Date', y='Customers', title='Daily Customer Count',
+                           labels={'Customers': 'Number of Customers', 'Date': 'Date'})
+    fig_customers.update_layout(
+        plot_bgcolor='#1E1E1E',
+        paper_bgcolor='#22252A',
+        font=dict(color='#EEE'),
+        height=350
+    )
+    fig_customers.update_traces(line_color='#FFB700', line_width=2)
+    st.plotly_chart(fig_customers, use_container_width=True)
+    
     st.subheader("Churn Rate Analysis")
     fig_churn = px.area(df, x='Date', y='Churn_Rate', title='Monthly Churn Rate Trend',
                        labels={'Churn_Rate': 'Churn Rate (%)', 'Date': 'Date'})
@@ -230,8 +233,7 @@ with st.expander("📊 Additional Analytics", expanded=False):
         plot_bgcolor='#1E1E1E',
         paper_bgcolor='#22252A',
         font=dict(color='#EEE'),
-        height=350,
-        hovermode='x'
+        height=350
     )
     st.plotly_chart(fig_churn, use_container_width=True)
 
