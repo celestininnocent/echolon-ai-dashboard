@@ -8,15 +8,7 @@ import io
 # ---- DARK THEME ----
 st.set_page_config(page_title="Echolon AI Dashboard", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
-    <style>
-        body, .stApp, .css-1d391kg, .css-14xtw13 {background-color: #181C24!important; color: #F3F6F9!important;}
-        .st-emotion-cache-2trqyj {color: #3ECF8E!important;}
-        .st-emotion-cache-1v0mbdj, .st-emotion-cache-1p66bqe {background: #111217  !important;}
-        header {background: none!important;}
-        .stTextInput > div > div > input, .stTextInput textarea {color: #fafcff!important; background-color: #232836!important;}
-        .stDataFrame {background-color: #191b21!important;}
-    </style>
-""", unsafe_allow_html=True)
+    <br>        body, .stApp, .css-1d391kg, .css-14xtw13 {background-color: #181C24!important; color: #F3F6F9!important;}<br>        .st-emotion-cache-2trqyj {color: #3ECF8E!important;}<br>        .st-emotion-cache-1v0mbdj, .st-emotion-cache-1p66bqe {background: #111217  !important;}<br>        header {background: none!important;}<br>        .stTextInput > div > div > input, .stTextInput textarea {color: #fafcff!important; background-color: #232836!important;}<br>        .stDataFrame {background-color: #191b21!important;}<br>    <br>""", unsafe_allow_html=True)
 
 # ---- SIDEBAR ----
 with st.sidebar:
@@ -36,7 +28,6 @@ with st.sidebar:
 st.header('Echolon AI Dashboard')
 st.markdown('Responsive, modular dashboard for business intelligence.')
 st.markdown('---')
-
 # 1. CSV Upload & Data Integration
 uploaded_file = st.file_uploader("Upload Business CSV", type=["csv"], help="Sales, marketing, or customer data")
 data_preview = None
@@ -65,66 +56,90 @@ if uploaded_file:
     st.write("**Auto-detected columns:**", col_map)
     st.markdown('---')
 
-# 2. Industry Benchmarking
-with st.expander('🏆 Industry Benchmarking', expanded=False):
-    st.subheader('Benchmark Your Metrics Against Industry Leaders')
-    st.write('Compare revenue, orders, churn and more versus sample benchmarks.')
-    # Sample industry benchmarks
-    benchmark_data = {
-        'Revenue': 100000,
-        'Orders': 2000,
-        'Churn Rate': 0.05,
-    }
-    if data_preview is not None and col_map:
-        values = {}
-        # Grab metrics from detected columns
-        if 'revenue' in col_map:
-            values['Revenue'] = data_preview[col_map['revenue']].sum()
-        if 'orders' in col_map:
-            values['Orders'] = data_preview[col_map['orders']].sum()
-        if 'churn' in col_map:
-            values['Churn Rate'] = data_preview[col_map['churn']].mean() if not data_preview[col_map['churn']].isnull().all() else None
-        st.markdown("### Metrics Compared to Benchmark:")
-        for metric, bench_val in benchmark_data.items():
-            val = values.get(metric, None)
-            if val is not None:
-                pct = (val - bench_val)/bench_val * 100
-                colour = 'red' if pct < 0 else 'green'
-                st.markdown(f"<span style='color:{colour}'>**{metric}: {val:,.0f} ({pct:+.1f}% vs benchmark {bench_val:,.0f})**</span>", unsafe_allow_html=True)
-            else:
-                st.markdown(f"<span style='color:orange'>**{metric}: Not available in your data**</span>", unsafe_allow_html=True)
-        st.markdown('---')
-    else:
-        st.info('Upload business data to enable benchmarking.')
-
-# 3. What If? Scenario Modeling
-with st.expander('🤔 Scenario Modeling', expanded=False):
+# ---- UPGRADED SCENARIO MODELING ----
+with st.expander('🤔 Scenario Modeling', expanded=True):
     st.subheader('Run Simulations')
     st.write('Project impact by adjusting Ad Spend, Price, Churn.')
-    ad_spend_pct = st.slider('Ad Spend % Change', -50, 50, 0, step=5)
-    price_pct = st.slider('Avg. Price % Change', -20, 20, 0, step=2)
-    churn_pct = st.slider('Churn Rate % Change', -50, 50, 0, step=5)
-    if data_preview is not None and col_map:
-        # Simulate results
-        revenue = data_preview[col_map['revenue']].sum() if 'revenue' in col_map else 0
-        orders = data_preview[col_map['orders']].sum() if 'orders' in col_map else 0
-        base_churn = data_preview[col_map['churn']].mean() if 'churn' in col_map else 0.05
-        proj_revenue = revenue * (1 + price_pct/100) * (1 - ((base_churn + churn_pct/100)))
-        proj_profit = proj_revenue * (1 + ad_spend_pct/200) # increase from ad
-        # Show plot
-        fig = go.Figure()
-        fig.add_trace(go.Bar(
-            x=['Current', 'Projected'],
-            y=[revenue, proj_profit],
-            marker_color=['#3ECF8E','#F3F6F9']
-        ))
-        fig.update_layout(title="Projected Revenue/Profit", template="plotly_dark")
-        st.plotly_chart(fig)
-    else:
-        st.info('Upload valid data for scenario projections.')
-    st.markdown('---')
+    # Sliders w/better ranges and labels
+    def slider_component(label, minimum, maximum, default, step, available, disabled_msg):
+        if available:
+            return st.slider(f'{label} (%)', min_value=minimum, max_value=maximum, value=default, step=step, help=f"Range: {minimum}% to {maximum}%")
+        else:
+            st.slider(f'{label} (%)', min_value=minimum, max_value=maximum, value=default, step=step, disabled=True, help=disabled_msg)
+            return default
+    has_revenue = 'revenue' in col_map
+    has_orders = 'orders' in col_map
+    has_churn = 'churn' in col_map
+    ad_spend_pct = slider_component('Ad Spend % Change', -50, 100, 0, 5, True, '')
+    price_pct = slider_component('Avg. Price % Change', -20, 40, 0, 2, has_revenue, 'Upload business data for price impact projections.')
+    churn_pct = slider_component('Churn Rate % Change', -50, 30, 0, 5, has_churn, 'Churn rate not found. Upload CSV with churn data.')
 
-# 4. Goal Tracking
+    # Prepare all metrics
+    current_metrics = {}
+    simulated_metrics = {}
+    if data_preview is not None and col_map:
+        current_metrics['Revenue'] = data_preview[col_map['revenue']].sum() if has_revenue else 0
+        current_metrics['Orders'] = data_preview[col_map['orders']].sum() if has_orders else 0
+        current_metrics['Churn Rate'] = data_preview[col_map['churn']].mean() if has_churn else 0.05
+        n_customers = len(data_preview) if has_orders else 0
+        ad_spend_base = 10000  # Mock: assume from business context or add as CSV column future
+        current_metrics['Ad Spend'] = ad_spend_base
+        current_metrics['Customers'] = n_customers
+        # Projected calculation
+        sim_rev = current_metrics['Revenue'] * (1 + price_pct/100) * (1 - ((current_metrics['Churn Rate'] + churn_pct/100)))
+        sim_orders = current_metrics['Orders'] * (1 + price_pct/100) * (1 - ((current_metrics['Churn Rate'] + churn_pct/100)))
+        sim_churn = current_metrics['Churn Rate'] + churn_pct/100
+        sim_ad_spend = ad_spend_base * (1 + ad_spend_pct/100)
+        sim_customers = n_customers * (1 - sim_churn)
+        simulated_metrics['Revenue'] = sim_rev
+        simulated_metrics['Orders'] = sim_orders
+        simulated_metrics['Churn Rate'] = sim_churn
+        simulated_metrics['Ad Spend'] = sim_ad_spend
+        simulated_metrics['Customers'] = sim_customers
+
+        # Live summary panel
+        change_rev_pct = ((sim_rev-current_metrics['Revenue'])/current_metrics['Revenue']*100) if current_metrics['Revenue'] else 0
+        st.info(f"Simulated: Revenue {'up' if change_rev_pct>=0 else 'down'} {change_rev_pct:,.1f}% at {ad_spend_pct:+.0f}% ad spend & {price_pct:+.0f}% price, churn {'flat' if churn_pct==0 else f'{sim_churn:,.2%}'}; see graphs below.")
+        st.markdown('---')
+        # Scenario result chart: Current vs Simulated, both bar + line
+        st.markdown('#### Scenario Comparison: Current vs Simulated')
+        summary_df = pd.DataFrame({
+            'Metric': list(current_metrics.keys()),
+            'Current': list(current_metrics.values()),
+            'Simulated': [simulated_metrics[k] for k in current_metrics.keys()]
+        })
+        st.dataframe(summary_df.set_index('Metric'), use_container_width=True)
+
+        # Main bar/line chart, group metrics
+        main_fig = go.Figure()
+        for metric in ['Revenue', 'Orders', 'Ad Spend', 'Customers', 'Churn Rate']:
+            main_fig.add_trace(go.Bar(
+                x=['Current', 'Simulated'], y=[current_metrics.get(metric,0), simulated_metrics.get(metric,0)], name=metric, text=[f'{current_metrics.get(metric,0):,.0f}', f'{simulated_metrics.get(metric,0):,.0f}'], textposition='auto'))
+        main_fig.update_layout(barmode='group', title='Scenario Metrics: Current vs Simulated', template="plotly_dark", xaxis_title='Period', yaxis_title='Value', legend_title='Metric')
+        st.plotly_chart(main_fig, use_container_width=True)
+        # Small multiples / modular charts
+        st.markdown('---')
+        st.markdown('#### Small Multiples: Key Projections')
+        cols = st.columns(4)
+        col_metrics = ['Revenue', 'Ad Spend', 'Churn Rate', 'Customers']
+        for i, met in enumerate(col_metrics):
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=['Current', 'Simulated'], y=[current_metrics.get(met, 0), simulated_metrics.get(met, 0)], marker_color=['#2bba74', '#f3f6f9']
+            ))
+            fig.add_trace(go.Scatter(
+                x=['Current', 'Simulated'], y=[current_metrics.get(met, 0), simulated_metrics.get(met, 0)], marker_color='#3ECF8E', name='Line'
+            ))
+            fig.update_layout(title=f'{met}', template="plotly_dark", xaxis_title='Period', yaxis_title=met,
+                              legend=dict(font=dict(color='white')), hovermode='x')
+            cols[i].plotly_chart(fig, use_container_width=True)
+        st.markdown('---')
+    else:
+        st.warning("Upload CSVs with Revenue, Orders, Churn columns to use all simulation controls & unlock live multiples.")
+        st.markdown('---')
+    # End Scenario Modeling
+
+# 4. Goal Tracking (unchanged)
 with st.expander('🎯 Goal Tracking', expanded=False):
     st.subheader('Monthly Goal Progress')
     revenue_target = st.number_input('Monthly Revenue Target', min_value=10000, value=80000)
@@ -134,23 +149,21 @@ with st.expander('🎯 Goal Tracking', expanded=False):
         actual_revenue = data_preview[col_map['revenue']].sum() if 'revenue' in col_map else 0
         actual_orders = data_preview[col_map['orders']].sum() if 'orders' in col_map else 0
         actual_conv = data_preview[col_map['conversion']].mean() if 'conversion' in col_map else 0
-        # Progress bars
         st.progress(min(actual_revenue/revenue_target, 1.0), f'Revenue Progress: {actual_revenue:,.0f}/{revenue_target:,.0f}')
         st.progress(min(actual_orders/orders_target, 1.0), f'Orders Progress: {actual_orders:,.0f}/{orders_target:,.0f}')
         st.progress(min(actual_conv/conv_target, 1.0), f'Conversion Rate Progress: {actual_conv:.2%}/{conv_target:.2%}')
-        # AI Suggestions for recovery
         st.info('AI Suggestion: Reallocate 10–15% ad spend from underperforming channels for better goal attainment.')
     else:
         st.info('Goals tracking available when valid business data is uploaded.')
     st.markdown('---')
 
-# 5. AI Insights & Recommendations
+# 5. AI Insights & Recommendations (unchanged)
 with st.expander('🤖 AI Insights', expanded=False):
     st.subheader('Analysis & Suggestions')
     st.info('Customer retention last quarter dropped due to inconsistent purchase frequency.\nAd budget should prioritize high-LTV segments.\nMock insights only. Real AI integration coming.')
     st.markdown('---')
 
-# 6. Collaboration/Notes
+# 6. Collaboration/Notes (unchanged)
 with st.expander('📝 Collaboration & Notes', expanded=False):
     st.subheader('Session Notes')
     st.write('Use the sidebar to add and read session notes. These are stored only locally for now.')
