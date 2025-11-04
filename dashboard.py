@@ -84,8 +84,7 @@ with st.expander("📈 Industry Benchmarking", expanded=True):
         plot_bgcolor='#1E1E1E',
         paper_bgcolor='#22252A',
         font=dict(color='#EEE'),
-        height=400,
-        hovermode='x unified'
+        height=400
     )
     st.plotly_chart(fig, use_container_width=True)
     
@@ -120,8 +119,7 @@ with st.expander("🔮 'What If?' Scenario Modeling", expanded=True):
         plot_bgcolor='#1E1E1E',
         paper_bgcolor='#22252A',
         font=dict(color='#EEE'),
-        height=400,
-        hovermode='x unified'
+        height=400
     )
     st.plotly_chart(fig_scenario, use_container_width=True)
     
@@ -168,10 +166,8 @@ with st.expander("🧠 AI Insights & Recommendations", expanded=True):
     st.info("AI-generated insights based on your data.")
     
     # Create insights visualizations
-    fig_insights = go.Figure()
     channels = ['Email', 'Social Media', 'Paid Search', 'Organic', 'Direct']
     roi_values = [450, 320, 280, 150, 520]
-    colors = ['#00FF88' if x > 350 else '#FFB700' if x > 250 else '#FF6B6B' for x in roi_values]
     fig_insights = px.bar(x=channels, y=roi_values, title='ROI by Marketing Channel',
                          labels={'x': 'Channel', 'y': 'ROI (%)'}, color=roi_values,
                          color_continuous_scale=['#FF6B6B', '#FFB700', '#00FF88'])
@@ -222,7 +218,7 @@ with st.expander("📊 Additional Analytics", expanded=False):
         paper_bgcolor='#22252A',
         font=dict(color='#EEE'),
         height=400,
-        hovermode='x unified'
+        hovermode='x'
     )
     st.plotly_chart(fig_trends, use_container_width=True)
     
@@ -235,7 +231,7 @@ with st.expander("📊 Additional Analytics", expanded=False):
         paper_bgcolor='#22252A',
         font=dict(color='#EEE'),
         height=350,
-        hovermode='x unified'
+        hovermode='x'
     )
     st.plotly_chart(fig_churn, use_container_width=True)
 
