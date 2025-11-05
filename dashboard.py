@@ -6,7 +6,6 @@ import numpy as np
 import plotly.graph_objs as go
 from datetime import datetime, timedelta
 st.set_page_config(page_title="Echolon AI Dashboard", layout="wide", initial_sidebar_state="expanded")
-
 # --- 📋 Echolon vs Visa Analytics/Business Dashboards: How We’re Different ---
 st.markdown(
     """
@@ -21,7 +20,6 @@ st.markdown(
     - **Gamification:** Engaging charts, metrics, and feedback make analysis fun, not tiring.
     - **Low Cost:** No premium licensing fees—accessible innovation for all.
     
-    <br>
     """,
     unsafe_allow_html=True
 )
@@ -91,3 +89,60 @@ with col_info[1]:
 with col_info[2]:
     date_cols = working_df.select_dtypes(include=['datetime64', 'object']).columns.tolist()
     st.write(f"**Text/Date Columns:** {len(date_cols)}")
+# --- NEW: Column Selection Section ---
+st.markdown("### 🛠️ Select Columns for Analysis")
+columns_selected = st.multiselect(
+    "Select data columns to view and analyze:", working_df.columns.tolist(), default=working_df.columns.tolist()
+)
+filtered_df = working_df[columns_selected]
+st.dataframe(filtered_df, use_container_width=True)
+# --- NEW: AI-Powered Insights Section ---
+def ai_insights(df):
+    insights = []
+    if 'Your Revenue' in df.columns and 'Industry Revenue' in df.columns:
+        rev_gap = df['Your Revenue'].mean() - df['Industry Revenue'].mean()
+        if rev_gap > 0:
+            insights.append("Your revenue consistently exceeds industry average! Keep leveraging your current growth strategies.")
+        else:
+            insights.append("Industry average revenue is higher. Consider reviewing pricing or marketing strategies.")
+    if 'Customers' in df.columns:
+        if df['Customers'].mean() > 4000:
+            insights.append("Customer acquisition is strong. Time to focus on retention!")
+        else:
+            insights.append("Explore new lead generation strategies for customer growth.")
+    if not insights:
+        insights.append("Upload more data for actionable insights.")
+    return insights
+st.markdown("### 🤖 AI-Powered Insights & Recommendations")
+for tip in ai_insights(filtered_df):
+    st.info(tip)
+# --- NEW: Interactive Charting & Gamification ---
+st.markdown("### 📈 Interactive Charts & Gamification")
+if len(numeric_cols) >= 2:
+    st.plotly_chart(
+        go.Figure([
+            go.Bar(
+                x=filtered_df['Date'] if 'Date' in filtered_df.columns else filtered_df.index,
+                y=filtered_df[numeric_cols[0]],
+                name=numeric_cols[0]
+            ),
+            go.Bar(
+                x=filtered_df['Date'] if 'Date' in filtered_df.columns else filtered_df.index,
+                y=filtered_df[numeric_cols[1]],
+                name=numeric_cols[1]
+            )
+        ]),
+        use_container_width=True
+    )
+    achievement = None
+    if 'Revenue Rank' in filtered_df.columns and filtered_df['Revenue Rank'].min() == 1:
+        achievement = "🏆 Top Industry Performer!"
+    if achievement:
+        st.success(f"**Achievement: {achievement}**")
+    completion_ratio = min(100, int(len(filtered_df)/10*100))  # Gamified metric
+    st.progress(completion_ratio, text=f"Data Analysis Progress: {completion_ratio}%")
+else:
+    st.warning("Not enough numeric columns for charting/gamification.")
+# --- NEW: No-Cost Section ---
+st.markdown("### 🎁 100% No-Cost Platform")
+st.info("Echolon AI Dashboard is completely free: No licensing fees, no premium paywalls. Built for startups and SMBs.")
